@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stratégie d'Investissement — 10 ans</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f12;
+    --bg2: #13161b;
+    --bg3: #1a1e25;
+    --bg4: #21262f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f2f5;
+    --text2: #8a919e;
+    --text3: #555d6a;
+    --green: #00d084;
+    --green-dim: rgba(0,208,132,0.12);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.12);
+    --blue: #4a9eff;
+    --blue-dim: rgba(74,158,255,0.12);
+    --red: #ff5f5f;
+    --red-dim: rgba(255,95,95,0.10);
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  header {
+    padding: 48px 40px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .header-left p {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+  .header-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    background: var(--bg3);
+  }
+
+  /* LAYOUT */
+  main { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+
+  /* WARNING */
+  .warning {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(245,166,35,0.08);
+    border: 1px solid rgba(245,166,35,0.25);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 32px;
+    font-size: 13px;
+    color: #d4940d;
+  }
+  .warning-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* PARAMS */
+  .params-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .param-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .param-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .param-value { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--text); }
+  .param-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 4px;
+    width: fit-content;
+  }
+  .tab {
+    padding: 7px 18px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    background: var(--bg4);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* METRICS GRID */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .metric {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .metric.green::before { background: var(--green); }
+  .metric.amber::before { background: var(--amber); }
+  .metric.blue::before { background: var(--blue); }
+  .metric.red::before { background: var(--red); }
+  .metric-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .metric-val { font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 500; }
+  .metric.green .metric-val { color: var(--green); }
+  .metric.amber .metric-val { color: var(--amber); }
+  .metric.blue .metric-val { color: var(--blue); }
+  .metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* CHART AREA */
+  .chart-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .chart-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .chart-canvas-wrap { position: relative; height: 280px; }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .table-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .table-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text3);
+    background: var(--bg3);
+    white-space: nowrap;
+  }
+  tbody tr { border-top: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:hover { background: var(--bg3); }
+  td {
+    padding: 11px 16px;
+    white-space: nowrap;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+  td.year-cell {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  td.capital-cell {
+    font-weight: 500;
+    color: var(--text);
+  }
+  td.gain-cell.green { color: var(--green); }
+  td.gain-cell.amber { color: var(--amber); }
+  td.mult { font-size: 11px; }
+  td.mult span {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+  }
+  td.avg-return { color: var(--blue); }
+  tfoot tr { border-top: 2px solid var(--border2); }
+  tfoot td { color: var(--text); font-weight: 500; background: var(--bg3); }
+
+  /* COMPARISON TABLE */
+  .compare-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  /* ALLOCATION */
+  .alloc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 700px) { .alloc-grid { grid-template-columns: 1fr; } }
+  .alloc-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+  .alloc-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .bar-label { font-size: 12px; color: var(--text2); width: 130px; flex-shrink: 0; }
+  .bar-track {
+    flex: 1;
+    height: 5px;
+    background: var(--bg4);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill { height: 100%; border-radius: 3px; }
+  .bar-pct { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); width: 30px; text-align: right; }
+
+  /* ENVELOPPES */
+  .env-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .env-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .env-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .env-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .env-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* TIPS */
+  .tips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .tip {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text2);
+    display: flex;
+    gap: 10px;
+  }
+  .tip-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  footer {
+    padding: 24px 40px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text3);
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    header, main { padding-left: 20px; padding-right: 20px; }
+    .header-left h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Stratégie d'Investissement — 10 ans</h1>
+    <p>Simulation comparative · Capital initial 1 000 € · Épargne mensuelle 300 €</p>
+  </div>
+  <span class="header-badge">2026 → 2036</span>
+</header>
+
+<main>
+
+  <div class="warning">
+    <span class="warning-icon">⚠</span>
+    <span><strong>Avertissement :</strong> Ces projections sont indicatives et ne constituent pas un conseil en investissement. Un rendement de 20%/an est très ambitieux — les marchés actions délivrent historiquement 7-10%/an. Investir comporte un risque de perte en capital. Consultez un conseiller en gestion de patrimoine pour une stratégie personnalisée.</span>
+  </div>
+
+  <div class="params-bar">
+    <div class="param-card">
+      <div class="param-label">Capital initial</div>
+      <div class="param-value">1 000 €</div>
+    </div>
+    <div class="param-card">
+      <div class="param-label">Épargne mensuelle</div>
+      <div class="param-value">300 €</div>
+    </div>
+    <div class="param-card">
+      <div class="param-label">Durée</div>
+      <div class="param-value">10 ans</div>
+    </div>
+    <div class="param-card">
+      <div class="param-label">Total versé</div>
+      <div class="param-value">37 000 €</div>
+      <div class="param-sub">1 000 + 300 × 120 mois</div>
+    </div>
+    <div class="param-card">
+      <div class="param-label">Objectif rendement</div>
+      <div class="param-value" style="color:var(--green)">20% / an</div>
+      <div class="param-sub">Profil agressif</div>
+    </div>
+    <div class="param-card">
+      <div class="param-label">Rendement réaliste</div>
+      <div class="param-value" style="color:var(--amber)">8% / an</div>
+      <div class="param-sub">Profil modéré</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('vue')">Vue d'ensemble</button>
+    <button class="tab" onclick="showPanel('sc20')">Scénario 20%</button>
+    <button class="tab" onclick="showPanel('sc8')">Scénario 8%</button>
+    <button class="tab" onclick="showPanel('compare')">Comparaison</button>
+    <button class="tab" onclick="showPanel('alloc')">Allocation & Stratégie</button>
+  </div>
+
+  <!-- VUE D'ENSEMBLE -->
+  <div id="vue" class="panel active">
+    <div class="metrics-grid">
+      <div class="metric blue">
+        <div class="metric-label">Capital versé total</div>
+        <div class="metric-val">37 000 €</div>
+        <div class="metric-sub">Sans aucun rendement</div>
+      </div>
+      <div class="metric green">
+        <div class="metric-label">Scénario 20% — capital final</div>
+        <div class="metric-val" id="final20"></div>
+        <div class="metric-sub" id="mult20"></div>
+      </div>
+      <div class="metric amber">
+        <div class="metric-label">Scénario 8% — capital final</div>
+        <div class="metric-val" id="final8"></div>
+        <div class="metric-sub" id="mult8"></div>
+      </div>
+      <div class="metric green">
+        <div class="metric-label">Plus-value scénario 20%</div>
+        <div class="metric-val" id="pv20"></div>
+        <div class="metric-sub">Gains intérêts composés</div>
+      </div>
+      <div class="metric amber">
+        <div class="metric-label">Plus-value scénario 8%</div>
+        <div class="metric-val" id="pv8"></div>
+        <div class="metric-sub">Gains intérêts composés</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <span class="chart-title">Évolution du capital sur 10 ans</span>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Scénario 20%/an</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Scénario 8%/an</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#555d6a; border: 1px dashed #555d6a;"></div>Capital versé</div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="mainChart" role="img" aria-label="Courbe d'évolution du capital sur 10 ans, scénario 20% atteint environ 248 000€, scénario 8% atteint environ 57 700€.">Évolution sur 10 ans : 20% → ~248 000€, 8% → ~57 700€.</canvas>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <span class="chart-title">Décomposition du capital — intérêts vs versements (scénario 20%)</span>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="stackedChart" role="img" aria-label="Graphique empilé montrant la part des versements et des intérêts composés dans le capital total chaque année.">Part versements et intérêts composés par année.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCÉNARIO 20% -->
+  <div id="sc20" class="panel">
+    <div class="table-wrap">
+      <div class="table-header">
+        Projection annuelle
+        <span class="table-badge badge-green">Rendement 20% / an</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Année</th>
+              <th>Capital début</th>
+              <th>Versements</th>
+              <th>Rendement annuel</th>
+              <th>Capital fin d'année</th>
+              <th>Total versé cumulé</th>
+              <th>Plus-value latente</th>
+              <th>Rendement moyen cumulé</th>
+              <th>Multiplicateur</th>
+            </tr>
+          </thead>
+          <tbody id="tbody20"></tbody>
+          <tfoot id="tfoot20"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCÉNARIO 8% -->
+  <div id="sc8" class="panel">
+    <div class="table-wrap">
+      <div class="table-header">
+        Projection annuelle
+        <span class="table-badge badge-amber">Rendement 8% / an</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Année</th>
+              <th>Capital début</th>
+              <th>Versements</th>
+              <th>Rendement annuel</th>
+              <th>Capital fin d'année</th>
+              <th>Total versé cumulé</th>
+              <th>Plus-value latente</th>
+              <th>Rendement moyen cumulé</th>
+              <th>Multiplicateur</th>
+            </tr>
+          </thead>
+          <tbody id="tbody8"></tbody>
+          <tfoot id="tfoot8"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARAISON -->
+  <div id="compare" class="panel">
+    <div class="compare-wrap">
+      <div class="table-header">Tableau comparatif — scénarios côte à côte</div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Année</th>
+              <th>Capital versé</th>
+              <th style="color:var(--green)">Capital 20%</th>
+              <th style="color:var(--green)">Gain 20%</th>
+              <th style="color:var(--green)">Rendement moy. 20%</th>
+              <th style="color:var(--amber)">Capital 8%</th>
+              <th style="color:var(--amber)">Gain 8%</th>
+              <th style="color:var(--amber)">Rendement moy. 8%</th>
+              <th>Écart</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyComp"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <span class="chart-title">Rendement moyen cumulé par année</span>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Scénario 20%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Scénario 8%</div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap" style="height:220px;">
+        <canvas id="avgChart" role="img" aria-label="Rendement moyen cumulé des deux scénarios sur 10 ans.">Rendement moyen cumulé.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALLOCATION & STRATÉGIE -->
+  <div id="alloc" class="panel">
+
+    <div class="alloc-grid">
+      <div class="alloc-card">
+        <div class="alloc-title"><span class="table-badge badge-green">Profil agressif — cible 20%/an</span></div>
+        <div class="bar-row"><span class="bar-label">ETF Actions monde</span><div class="bar-track"><div class="bar-fill" style="width:40%;background:var(--green)"></div></div><span class="bar-pct">40%</span></div>
+        <div class="bar-row"><span class="bar-label">Actions croissance</span><div class="bar-track"><div class="bar-fill" style="width:25%;background:#00a86b"></div></div><span class="bar-pct">25%</span></div>
+        <div class="bar-row"><span class="bar-label">ETF Tech / IA</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:#007d50"></div></div><span class="bar-pct">15%</span></div>
+        <div class="bar-row"><span class="bar-label">Crypto (BTC/ETH)</span><div class="bar-track"><div class="bar-fill" style="width:10%;background:#005437"></div></div><span class="bar-pct">10%</span></div>
+        <div class="bar-row"><span class="bar-label">Obligations HY</span><div class="bar-track"><div class="bar-fill" style="width:10%;background:#003d28"></div></div><span class="bar-pct">10%</span></div>
+        <p style="font-size:12px;color:var(--text3);margin-top:12px;line-height:1.5;">Volatilité élevée · Risque de perte important · Nécessite un suivi régulier</p>
+      </div>
+      <div class="alloc-card">
+        <div class="alloc-title"><span class="table-badge badge-amber">Profil modéré — cible 8%/an</span></div>
+        <div class="bar-row"><span class="bar-label">ETF MSCI World</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--amber)"></div></div><span class="bar-pct">50%</span></div>
+        <div class="bar-row"><span class="bar-label">Obligations IG</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#c8801a"></div></div><span class="bar-pct">20%</span></div>
+        <div class="bar-row"><span class="bar-label">ETF Dividendes</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:#a06010"></div></div><span class="bar-pct">15%</span></div>
+        <div class="bar-row"><span class="bar-label">Immobilier (SCPI)</span><div class="bar-track"><div class="bar-fill" style="width:10%;background:#78460b"></div></div><span class="bar-pct">10%</span></div>
+        <div class="bar-row"><span class="bar-label">Fonds monétaires</span><div class="bar-track"><div class="bar-fill" style="width:5%;background:#4a2c06"></div></div><span class="bar-pct">5%</span></div>
+        <p style="font-size:12px;color:var(--text3);margin-top:12px;line-height:1.5;">Volatilité modérée · Horizon long terme · Convient à la majorité des épargnants</p>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:28px;">
+      <div class="table-header">ETF recommandés — exemples concrets</div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ETF / Actif</th>
+              <th>Indice suivi</th>
+              <th>Frais annuels</th>
+              <th>Éligible PEA</th>
+              <th>Profil</th>
+              <th>Rendement hist. ~10 ans</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="year-cell">Amundi MSCI World</td><td>MSCI World</td><td>0,18%</td><td style="color:var(--green)">Oui</td><td><span class="table-badge badge-amber">Modéré</span></td><td>~10%/an</td></tr>
+            <tr><td class="year-cell">Amundi S&P 500</td><td>S&P 500</td><td>0,15%</td><td style="color:var(--green)">Oui</td><td><span class="table-badge badge-amber">Modéré</span></td><td>~12%/an</td></tr>
+            <tr><td class="year-cell">Lyxor Nasdaq 100</td><td>Nasdaq 100</td><td>0,23%</td><td style="color:var(--green)">Oui</td><td><span class="table-badge badge-green">Agressif</span></td><td>~18%/an</td></tr>
+            <tr><td class="year-cell">iShares MSCI EM</td><td>Émergents</td><td>0,18%</td><td style="color:var(--red)">Non</td><td><span class="table-badge badge-green">Agressif</span></td><td>~5%/an (volatil)</td></tr>
+            <tr><td class="year-cell">BTC / ETH (crypto)</td><td>—</td><td>Variable</td><td style="color:var(--red)">Non</td><td><span class="table-badge badge-green">Agressif</span></td><td>Très variable</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;">Enveloppes fiscales — France</p>
+    <div class="env-grid">
+      <div class="env-card">
+        <div class="env-name" style="color:var(--green)">PEA</div>
+        <div class="env-desc">Exonération d'impôt sur les plus-values après 5 ans. Plafond 150 000 €. Idéal pour les ETF actions européennes et MSCI World éligibles.</div>
+        <span class="env-tag" style="background:var(--green-dim);color:var(--green)">Priorité #1</span>
+      </div>
+      <div class="env-card">
+        <div class="env-name" style="color:var(--blue)">Assurance-Vie</div>
+        <div class="env-desc">Fiscalité réduite après 8 ans (abattement 4 600€/9 200€). Accès ETF via unités de compte. Idéal pour compléter le PEA.</div>
+        <span class="env-tag" style="background:var(--blue-dim);color:var(--blue)">Priorité #2</span>
+      </div>
+      <div class="env-card">
+        <div class="env-name" style="color:var(--amber)">CTO (Compte-Titres)</div>
+        <div class="env-desc">Accès total (actions US, crypto, etc.). Flat tax 30% (PFU). À utiliser pour les actifs non éligibles PEA ou au-delà des plafonds.</div>
+        <span class="env-tag" style="background:var(--amber-dim);color:var(--amber)">Priorité #3</span>
+      </div>
+      <div class="env-card">
+        <div class="env-name" style="color:var(--text2)">Livret A / LDDS</div>
+        <div class="env-desc">Épargne de précaution obligatoire (3-6 mois de dépenses). 3%/an défiscalisé. Ne jamais investir sans ce filet de sécurité.</div>
+        <span class="env-tag" style="background:var(--bg4);color:var(--text3)">Pré-requis</span>
+      </div>
+    </div>
+
+    <p style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;">Règles d'or de l'investisseur</p>
+    <div class="tips">
+      <div class="tip"><span class="tip-num">01</span><span>Constituez d'abord 3 à 6 mois de dépenses sur Livret A avant d'investir. C'est votre filet de sécurité.</span></div>
+      <div class="tip"><span class="tip-num">02</span><span>Investissez régulièrement (DCA mensuel). Le versement automatique neutralise le risque de mauvais timing.</span></div>
+      <div class="tip"><span class="tip-num">03</span><span>Ouvrez votre PEA le plus tôt possible — même avec 100€ — pour faire tourner le compteur des 5 ans fiscaux.</span></div>
+      <div class="tip"><span class="tip-num">04</span><span>Ne paniquez pas lors des baisses. Les investisseurs qui tiennent 10 ans surperforment systématiquement ceux qui vendent.</span></div>
+      <div class="tip"><span class="tip-num">05</span><span>Limitez la crypto à 5-10% du portefeuille maximum. Fort potentiel, mais risque de perte totale réel.</span></div>
+      <div class="tip"><span class="tip-num">06</span><span>Rééquilibrez votre allocation une fois par an pour maintenir le ratio cible entre actifs.</span></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Simulation à titre indicatif uniquement — pas un conseil en investissement · Les performances passées ne préjugent pas des performances futures · © 2026
+</footer>
+
+<script>
+function fmt(n) {
+  return new Intl.NumberFormat('fr-FR', {maximumFractionDigits:0}).format(Math.round(n)) + ' €';
+}
+function fmtPct(n) {
+  return n.toFixed(1) + '%';
+}
+
+function buildRows(rate) {
+  const monthly = 300, initial = 1000;
+  const rows = [];
+  let capital = initial;
+  let totalPoured = initial;
+  for (let y = 1; y <= 10; y++) {
+    const start = capital;
+    const contributions = monthly * 12;
+    const midCapital = start + contributions / 2;
+    const gain = midCapital * rate;
+    capital = start + contributions + gain;
+    totalPoured += contributions;
+    // Average cumulative return = (capital / totalPoured - 1) / years
+    const avgReturn = ((capital / totalPoured) - 1) / y * 100;
+    rows.push({ year: y, start, contributions, gain, capital, totalPoured, pv: capital - totalPoured, avgReturn });
+  }
+  return rows;
+}
+
+const rows20 = buildRows(0.20);
+const rows8  = buildRows(0.08);
+
+// Fill metrics
+const last20 = rows20[9], last8 = rows8[9];
+document.getElementById('final20').textContent = fmt(last20.capital);
+document.getElementById('mult20').textContent = '×' + (last20.capital / last20.totalPoured).toFixed(1) + ' le capital versé';
+document.getElementById('final8').textContent = fmt(last8.capital);
+document.getElementById('mult8').textContent = '×' + (last8.capital / last8.totalPoured).toFixed(1) + ' le capital versé';
+document.getElementById('pv20').textContent = '+' + fmt(last20.pv);
+document.getElementById('pv8').textContent = '+' + fmt(last8.pv);
+
+function fillTable(rows, tbodyId, tfootId, colorClass) {
+  const tbody = document.getElementById(tbodyId);
+  rows.forEach(r => {
+    const m = (r.capital / r.totalPoured).toFixed(1);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="year-cell">An ${r.year}</td>
+      <td>${fmt(r.start)}</td>
+      <td>${fmt(r.contributions)}</td>
+      <td class="gain-cell ${colorClass}">+${fmt(r.gain)}</td>
+      <td class="capital-cell">${fmt(r.capital)}</td>
+      <td>${fmt(r.totalPoured)}</td>
+      <td class="gain-cell ${colorClass}">+${fmt(r.pv)}</td>
+      <td class="avg-return">${fmtPct(r.avgReturn)}/an</td>
+      <td class="mult"><span class="table-badge badge-${colorClass === 'green' ? 'green' : 'amber'}">×${m}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  const tfoot = document.getElementById(tfootId);
+  const last = rows[9];
+  tfoot.innerHTML = `<tr>
+    <td>TOTAL 10 ans</td>
+    <td>—</td>
+    <td>${fmt(last.totalPoured - 1000)}</td>
+    <td class="gain-cell ${colorClass}">+${fmt(last.pv)}</td>
+    <td class="capital-cell">${fmt(last.capital)}</td>
+    <td>${fmt(last.totalPoured)}</td>
+    <td class="gain-cell ${colorClass}">+${fmt(last.pv)}</td>
+    <td class="avg-return">${fmtPct(last.avgReturn)}/an</td>
+    <td>×${(last.capital / last.totalPoured).toFixed(1)}</td>
+  </tr>`;
+}
+
+fillTable(rows20, 'tbody20', 'tfoot20', 'green');
+fillTable(rows8,  'tbody8',  'tfoot8',  'amber');
+
+// Comparison table
+const tbodyComp = document.getElementById('tbodyComp');
+rows20.forEach((r, i) => {
+  const r8 = rows8[i];
+  const ecart = r.capital - r8.capital;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="year-cell">An ${r.year}</td>
+    <td>${fmt(r.totalPoured)}</td>
+    <td style="color:var(--green)">${fmt(r.capital)}</td>
+    <td style="color:var(--green)">+${fmt(r.pv)}</td>
+    <td style="color:var(--blue)">${fmtPct(r.avgReturn)}/an</td>
+    <td style="color:var(--amber)">${fmt(r8.capital)}</td>
+    <td style="color:var(--amber)">+${fmt(r8.pv)}</td>
+    <td style="color:var(--blue)">${fmtPct(r8.avgReturn)}/an</td>
+    <td style="color:var(--green);font-family:'DM Mono',monospace;font-size:12px;">+${fmt(ecart)}</td>
+  `;
+  tbodyComp.appendChild(tr);
+});
+
+// CHARTS
+const labels = ['Départ', ...rows20.map(r => 'An ' + r.year)];
+const poured  = [1000, ...rows20.map(r => r.totalPoured)];
+const cap20   = [1000, ...rows20.map(r => Math.round(r.capital))];
+const cap8    = [1000, ...rows8.map(r => Math.round(r.capital))];
+
+new Chart(document.getElementById('mainChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      { label: 'Scénario 20%', data: cap20, borderColor: '#00d084', backgroundColor: 'rgba(0,208,132,0.06)', tension: 0.3, pointRadius: 4, pointBackgroundColor: '#00d084', borderWidth: 2 },
+      { label: 'Scénario 8%', data: cap8, borderColor: '#f5a623', backgroundColor: 'rgba(245,166,35,0.06)', tension: 0.3, pointRadius: 4, pointBackgroundColor: '#f5a623', borderWidth: 2 },
+      { label: 'Capital versé', data: poured, borderColor: '#555d6a', borderDash: [5,4], backgroundColor: 'transparent', tension: 0, pointRadius: 0, borderWidth: 1.5 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#13161b',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        titleColor: '#8a919e',
+        bodyColor: '#f0f2f5',
+        callbacks: {
+          label: ctx => ' ' + ctx.dataset.label + ' : ' + ctx.raw.toLocaleString('fr-FR') + ' €'
+        }
+      }
+    },
+    scales: {
+      y: {
+        ticks: { callback: v => (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) + ' €', color: '#555d6a', font: { size: 11 } },
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        border: { color: 'rgba(255,255,255,0.07)' }
+      },
+      x: {
+        ticks: { color: '#555d6a', font: { size: 11 } },
+        grid: { display: false },
+        border: { color: 'rgba(255,255,255,0.07)' }
+      }
+    }
+  }
+});
+
+// Stacked bar
+const gainArr = rows20.map(r => Math.round(r.pv));
+const versArr = rows20.map(r => r.totalPoured);
+new Chart(document.getElementById('stackedChart'), {
+  type: 'bar',
+  data: {
+    labels: rows20.map(r => 'An ' + r.year),
+    datasets: [
+      { label: 'Versements cumulés', data: versArr, backgroundColor: 'rgba(74,158,255,0.5)', stack: 'a' },
+      { label: 'Plus-value', data: gainArr, backgroundColor: 'rgba(0,208,132,0.6)', stack: 'a' }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        labels: { color: '#8a919e', font: { size: 11 }, boxWidth: 10, boxHeight: 10 }
+      },
+      tooltip: {
+        backgroundColor: '#13161b',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        titleColor: '#8a919e',
+        bodyColor: '#f0f2f5',
+        callbacks: { label: ctx => ' ' + ctx.dataset.label + ' : ' + ctx.raw.toLocaleString('fr-FR') + ' €' }
+      }
+    },
+    scales: {
+      y: { stacked: true, ticks: { callback: v => (v/1000).toFixed(0) + 'k €', color: '#555d6a', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' }, border: { color: 'rgba(255,255,255,0.07)' } },
+      x: { stacked: true, ticks: { color: '#555d6a', font: { size: 11 } }, grid: { display: false }, border: { color: 'rgba(255,255,255,0.07)' } }
+    }
+  }
+});
+
+// Avg return chart
+new Chart(document.getElementById('avgChart'), {
+  type: 'line',
+  data: {
+    labels: rows20.map(r => 'An ' + r.year),
+    datasets: [
+      { label: 'Rendement moy. 20%', data: rows20.map(r => parseFloat(r.avgReturn.toFixed(2))), borderColor: '#00d084', backgroundColor: 'rgba(0,208,132,0.08)', tension: 0.3, pointRadius: 3, borderWidth: 2 },
+      { label: 'Rendement moy. 8%', data: rows8.map(r => parseFloat(r.avgReturn.toFixed(2))), borderColor: '#f5a623', backgroundColor: 'rgba(245,166,35,0.08)', tension: 0.3, pointRadius: 3, borderWidth: 2 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#13161b',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        titleColor: '#8a919e',
+        bodyColor: '#f0f2f5',
+        callbacks: { label: ctx => ' ' + ctx.dataset.label + ' : ' + ctx.raw.toFixed(1) + '%/an' }
+      }
+    },
+    scales: {
+      y: { ticks: { callback: v => v.toFixed(0) + '%', color: '#555d6a', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' }, border: { color: 'rgba(255,255,255,0.07)' } },
+      x: { ticks: { color: '#555d6a', font: { size: 11 } }, grid: { display: false }, border: { color: 'rgba(255,255,255,0.07)' } }
+    }
+  }
+});
+
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
